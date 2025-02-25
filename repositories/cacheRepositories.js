@@ -22,8 +22,10 @@ export const getWeatherCached = async (city) => {
         if (!weatherData) {
             weatherData = await getOpenWeatherAPI(city);
             await redisClient.setEx(`weather-${city}`, Number(process.env.EXPIRATION_TIME), JSON.stringify(weatherData));
+            await redisClient.quit();
             return weatherData;
         } else {
+            await redisClient.quit();
             return JSON.parse(weatherData);
         }
     } catch (error) {
@@ -42,8 +44,10 @@ export const getForecastCached = async (city) => {
         if (!forecastData) {
             forecastData = await getOpenWeatherForecastAPI(city);
             await redisClient.setEx(`forecast-${city}`, Number(process.env.EXPIRATION_TIME), JSON.stringify(forecastData));
+            await redisClient.quit();
             return forecastData;
         } else {
+            await redisClient.quit();
             return JSON.parse(forecastData);
         }
     } catch (error) {
