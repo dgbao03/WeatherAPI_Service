@@ -17,7 +17,7 @@
 * You'll need to have Node.js and npm installed on your system.
 * Clone the project repository to your local machine.
  ``` properties
-git clone https://github.com/dogiabao03/University_DigitialContact_Website
+https://github.com/dgbao03/WeatherAPI_Service
 ```
 * Install the required dependencies by running npm install.
 ``` properties
