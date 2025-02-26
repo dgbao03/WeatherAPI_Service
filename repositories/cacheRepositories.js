@@ -13,45 +13,30 @@ const createRedisClient = async () => {
 }
 
 export const getWeatherCached = async (city) => {
-    try {
-        city = city.toLowerCase();
-
-        const redisClient = await createRedisClient();
-        let weatherData = await redisClient.get(`weather-${city}`);
-
-        if (!weatherData) {
-            weatherData = await getOpenWeatherAPI(city);
-            await redisClient.setEx(`weather-${city}`, Number(process.env.EXPIRATION_TIME), JSON.stringify(weatherData));
-            await redisClient.quit();
-            return weatherData;
-        } else {
-            await redisClient.quit();
-            return JSON.parse(weatherData);
-        }
-    } catch (error) {
-        console.error("Redis Error: " + error);
-        throw error;
-    }
+    return await getOrSetCache("weather", city, getOpenWeatherAPI);
 }
 
 export const getForecastCached = async (city) => {
+    return await getOrSetCache("forecast", city, getOpenWeatherForecastAPI);
+} 
+
+const getOrSetCache = async (keyPrefix, city, fetchFunction) => {
     try {
         city = city.toLowerCase();
 
         const redisClient = await createRedisClient();
-        let forecastData = await redisClient.get(`forecast-${city}`);
+        let data = await redisClient.get(`${keyPrefix}-${city}`);
 
-        if (!forecastData) {
-            forecastData = await getOpenWeatherForecastAPI(city);
-            await redisClient.setEx(`forecast-${city}`, Number(process.env.EXPIRATION_TIME), JSON.stringify(forecastData));
+        if (!data) {
+            data = await fetchFunction(city)
+            await redisClient.setEx(`${keyPrefix}-${city}`, Number(process.env.EXPIRATION_TIME), JSON.stringify(data));
             await redisClient.quit();
-            return forecastData;
+            return data;
         } else {
             await redisClient.quit();
-            return JSON.parse(forecastData);
+            return JSON.parse(data);
         }
     } catch (error) {
-        console.error("Redis Error: " + error);
         throw error;
     }
-} 
+}
